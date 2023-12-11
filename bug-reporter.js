@@ -1,6 +1,6 @@
 // bug-reporter.js
 
-import { captureScreenshot } from './screenshot';
+import { captureScreenshot, captureScreenshotUsingMediaShare, captureScreenshotUsingCanvas } from './screenshot';
 
 let sendReportAPIEndpoint = '/api/report-bug';
 
@@ -19,7 +19,7 @@ const sendBugReport = async function (context) {
 
   console.log('sendReportAPIEndpoint', sendReportAPIEndpoint)
 
-  const screenshot = await captureScreenshot('body');
+  const screenshot = await captureScreenshotUsingCanvas();
   const consoleLogs = window.consoleLogs;
 
   console.log('screenshot', screenshot);

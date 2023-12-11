@@ -34,7 +34,6 @@ import { bugReporterConfig, sendBugReport } from "./bug-reporter";
   };
 
 
-
 })();
 
 export { bugReporterConfig, sendBugReport };
