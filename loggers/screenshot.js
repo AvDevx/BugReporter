@@ -25,35 +25,6 @@ async function captureScreenshot() {
   }
 }
 
-async function captureScreenshotUsingMediaShare() {
-  try {
-    console.log('Capturing screenshot using media share...');
-
-    const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        cursor: 'always',
-      },
-      audio: false,
-      // prefer this tab
-
-    });
-
-    const mediaStreamTrack = mediaStream.getVideoTracks()[0];
-
-    const mediaStreamImageCapture = new ImageCapture(mediaStreamTrack);
-
-    const screenshotBlob = await mediaStreamImageCapture.takePhoto();
-
-    console.log('Screenshot captured successfully.');
-
-    return screenshotBlob;
-  } catch (e) {
-    console.error('Error capturing screenshot:', e);
-    throw e;
-  }
-}
-
-
 
 const overlay = document.createElement('div');
 overlay.style.cssText = `
@@ -76,7 +47,7 @@ overlay.style.cssText = `
 
 // add image inside of the overlay div with working link
 
-import image from './arrow-with-scribble.png';
+import image from '../assets/arrow-with-scribble.png';
 
 overlay.innerHTML = `<img src="${image}" style="width: 100px; height: 100px; margin-right: 20px; filter: invert(1);
 transform: scaleX(-1) rotate(257deg);" />`;
@@ -87,7 +58,7 @@ overlay.innerHTML += '<p style="color:white" class="bold">Please allow for the s
 overlay.style.display = 'flex';
 
 
-async function captureScreenshotUsingCanvas() {
+async function captureScreenshotUsingMediaShare() {
   try {
 
    
@@ -126,32 +97,38 @@ async function captureScreenshotUsingCanvas() {
     const offscreenContext = offscreenCanvas.getContext('2d');
 
     // Wait for the video to be loaded and start playing
-    videoElement.addEventListener('loadedmetadata', () => {
-      videoElement.play().then(() => {
-        // Draw the video onto the offscreen canvas
-        offscreenContext.drawImage(videoElement, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+    return new Promise((resolve, reject) => {
+      // Wait for the video to be loaded and start playing
+      videoElement.addEventListener('loadedmetadata', () => {
+        videoElement.play().then(() => {
+          // Draw the video onto the offscreen canvas
+          offscreenContext.drawImage(videoElement, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
-        // Stop screen sharing
-        const tracks = mediaStream.getTracks();
-        tracks.forEach(track => track.stop());
+          // Stop screen sharing
+          const tracks = mediaStream.getTracks();
+          tracks.forEach(track => track.stop());
 
-        // Save the canvas as a blob
-        offscreenCanvas.convertToBlob({ type: 'image/png' }).then(blob => {
-          // You can now use the blob as needed, for example, upload it to a server or create a download link
-          const downloadLink = document.createElement('a');
-          downloadLink.href = URL.createObjectURL(blob);
-          downloadLink.download = 'screenshot.png';
-          downloadLink.click();
+          // Save the canvas as a blob
+          offscreenCanvas.convertToBlob({ type: 'image/png' }).then(blob => {
+            // Convert blob to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function () {
+              const base64data = reader.result;
+              
+              resolve(base64data); // Resolve the promise with base64 data
+            };
+          });
         });
       });
-    });
 
-    // Append the video element to the body
-    document.body.appendChild(videoElement);
+      // Append the video element to the body
+      document.body.appendChild(videoElement);
+    });
   } catch (e) {
     console.error('Error capturing screen:', e);
     
   }
 }
 
-export { captureScreenshot, captureScreenshotUsingMediaShare, captureScreenshotUsingCanvas };
+export { captureScreenshot, captureScreenshotUsingMediaShare };

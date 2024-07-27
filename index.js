@@ -1,6 +1,6 @@
 // index.js
 
-import { bugReporterConfig, sendBugReport } from "./bug-reporter";
+import { bugReporterConfig, sendBugReport } from "./loggers/bug-reporter";
 
 (function () {
   const originalConsoleError = console.error;
@@ -28,6 +28,8 @@ import { bugReporterConfig, sendBugReport } from "./bug-reporter";
 
   XMLHttpRequest.prototype.open = function (...args) {
     originalOpen.apply(this, args);
+
+    
     window.requestLogs.push(args);
 
     console.log('request', args);

@@ -1,15 +1,19 @@
 // bug-reporter.js
 
-import { captureScreenshot, captureScreenshotUsingMediaShare, captureScreenshotUsingCanvas } from './screenshot';
+import { captureScreenshot, captureScreenshotUsingMediaShare } from './screenshot';
 
 let sendReportAPIEndpoint = '/api/report-bug';
 
+let buggyConfig = {
+    screenshotMode: 'mediaShare'
+}
 /**
  * Set the bug report server URL.
  * @param {string} url - The URL to send bug reports to.
  */
 function bugReporterConfig(config) {
     sendReportAPIEndpoint = config.sendReportAPIEndpoint;
+    buggyConfig = {...buggyConfig, ...config }
 }
 
 /**
@@ -19,14 +23,24 @@ const sendBugReport = async function (context) {
 
   console.log('sendReportAPIEndpoint', sendReportAPIEndpoint)
 
-  const screenshot = await captureScreenshotUsingCanvas();
+  let screenShot = null
+
+  console.log('buggyConfig', buggyConfig)
+
+  if (buggyConfig.screenshotMode === 'canvas') {
+    screenShot = await captureScreenshot();
+  } else if (buggyConfig.screenshotMode === 'mediaShare') {
+    console.log('mediaShare')
+    screenShot = await captureScreenshotUsingMediaShare();
+  }
   const consoleLogs = window.consoleLogs;
 
-  console.log('screenshot', screenshot);
+  
 
   const formData = new FormData();
-  // formData.append('screenshot', screenshot);
+  formData.append('screenshot', screenShot);
   formData.append('consoleLogs', JSON.stringify(consoleLogs));
+  formData.append('requestLogs', JSON.stringify(window.requestLogs));
 
     // if context then append context
     if (context) {
